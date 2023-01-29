@@ -13,7 +13,6 @@ int main(int argc, char* argv[]) {
     user_list = createLinkedList();
     option_init(file_directory, &number_of_thread);
     parse_command(argc, argv, file_directory, &number_of_thread, user_list);
-
     read_from_shadow(file_directory, file_list);
     find_user(file_list, user_list);
     compare_password_with_salt(user_list);

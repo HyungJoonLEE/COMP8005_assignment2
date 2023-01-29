@@ -2,6 +2,9 @@
 #include "common.h"
 #include "error.h"
 
+pthread_mutex_t mutex;
+omp_lock_t semaphore;
+int occupied = 100;
 
 void option_init(char* file_directory, int* number_of_thread) {
     strcpy(file_directory, DEFAULT_DIR);
@@ -147,7 +150,7 @@ void compare_password_with_salt(LinkedList *user_list) {
     char salt_setting[200] = {0};
     clock_t start, end;
     float time;
-
+    int thread_id;
     for (int i = 0; i < user_list->currentElementCount; i++) {
         if (strcmp(getLLElement(user_list, i)->hash_id, "y") == 0)
             sprintf(salt_setting, "$%s$%s$%s",
@@ -161,96 +164,53 @@ void compare_password_with_salt(LinkedList *user_list) {
 
         strcpy(getLLElement(user_list, i)->salt_setting, salt_setting);
 
+        pthread_mutex_init(&mutex, NULL);
         start = clock();
-        recursive_init(user_list, i);
+        recursive_init(user_list, PASS_LEN, i);
         end = clock();
 
-        time = (float)(end - start) / CLOCKS_PER_SEC;
+        time = (float) (end - start) / CLOCKS_PER_SEC;
         getLLElement(user_list, i)->time = time;
     }
 }
 
+void recursive_init(LinkedList *user_list, int passwd_len, int user_index) {
 
-void recursive_init(LinkedList *user_list, int user_index) {
-    char* buf = malloc(PASS_LEN + 1);
+    char* buf = malloc(passwd_len + 1);
+    int flag = 0;
+    #pragma omp parallel
+    for (int i = 1; i <= passwd_len; i++) {
+        memset(buf, 0, passwd_len + 1);
+        brute_force_crack(user_list, user_index, buf, 0, i,  &flag);
+        if (flag == 1) break;
+    }
 
-    create_thread(user_list);
     free(buf);
 }
 
 
-void create_thread(LinkedList *user_list) {
-    pthread_t thread[user_list->num_thread];
-    int i;
-
-    for (i = 0; i < user_list->num_thread; i++) {
-        ThreadNode thread_node = {0,};
-        thread_node.id = malloc(sizeof(int));
-        *thread_node.id = i;
-        addTLElement(user_list, i, thread_node);
-        if (pthread_create(&thread[i], NULL, (void *(*)(void *)) &thread_brute_force, user_list) != 0)
-            printf("Failed to create thread\n");
-    }
-
-    for (int k = 0; k < user_list->num_thread; k++) {
-        pthread_join(thread[k], NULL);
-    }
-}
-
-
-void* thread_brute_force(void *arg) {
-    char str[PASS_LEN + 1];
-    int thread_num = ((LinkedList *)arg)->num_thread;
-    int id = *(getTLElement((LinkedList *)arg, ((LinkedList *)arg)->currentThreadCount - 1)->id);
-    int start = id * (PASS_ARR_LEN / thread_num);
-    int end = start + (PASS_ARR_LEN / thread_num);
-
-//    printf("th num = %d\n",((LinkedList *)arg)->currentThreadCount);
-    printf("%d = %d | %d\n", id, start, end);
-
-    for (int i = start; i < end; i++) {
-        printf("%c\n", passwd_arr[i]);
-    }
-    free(getTLElement((LinkedList *)arg, ((LinkedList *)arg)->currentThreadCount - 1)->id);
-}
-
-
-void* brute_force_crack(LinkedList *user_list, int user_index, char* str, int index, int ptr, int* flag) {
-    if (*flag == 1) return NULL;
-
+void brute_force_crack(LinkedList *user_list, int user_index, char* str, int index, int ptr, int* flag) {
+    if (*flag == 1) return;
+    #pragma omp critical
     for (int i = 0; i < PASS_ARR_LEN; ++i) {
         str[index] = passwd_arr[i];
         if (index == ptr - 1) {
+//            pthread_mutex_lock(&mutex);
             if (strcmp(crypt(str, getLLElement(user_list, user_index)->salt_setting),
                        getLLElement(user_list, user_index)->original) == 0) {
                 strcpy(getLLElement(user_list, user_index)->password, str);
-                printf("%s (HIT)\n", str);
+                printf("[thread %d]: %s (HIT)\n", omp_get_thread_num(), str);
                 *flag = 1;
-                return NULL;
             }
-            printf("%s (MISS)\n", str);
+//            pthread_mutex_unlock(&mutex);
+            printf("[thread %d]: %s (MISS)\n", omp_get_thread_num(), str);
+            pthread_mutex_lock(&mutex);
             getLLElement(user_list, user_index)->count++;
-        }
-        else {
-            brute_force_crack(user_list, user_index, str, index + 1, ptr, flag);
+//            pthread_mutex_unlock(&mutex);
+        } else {
+            brute_force_crack(user_list, index + 1, str, ptr, user_index, flag);
         }
     }
-}
-
-
-
-
-
-void *thread_func(void *data) {
-    pid_t  pid;
-    pthread_t tid;
-    int i = 0;
-
-    char* thread_name = (char*) data;
-    pid = getpid();
-    tid = pthread_self();
-    printf("[%s] pid : %u, tid: %lx --- %d\n", thread_name, pid, tid, i);
-    sleep(1);
 }
 
 

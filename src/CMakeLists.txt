@@ -68,6 +68,7 @@ if (NOT TARGET COMP8005_assignment2)
     message(FATAL_ERROR "Could not find a suitable crypt() implementation")
 endif ()
 
+find_package(OpenMP REQUIRED)
 
 # Make an executable
 add_executable(MAIN ${COMMON_SOURCE_LIST}  ${MAIN_SOURCE_LIST} ${HEADER_LIST})
@@ -89,8 +90,9 @@ target_compile_options(MAIN PRIVATE -Wdouble-promotion -Wformat-nonliteral -Wfor
 find_library(LIBM m REQUIRED)
 find_library(LIBSOCKET socket)
 
-target_link_libraries(MAIN PRIVATE ${LIBM})
+target_link_libraries(MAIN PRIVATE ${LIBM} OpenMP::OpenMP_C)
 target_link_libraries(MAIN PRIVATE COMP8005_assignment2)
+
 
 
 set_target_properties(MAIN PROPERTIES OUTPUT_NAME "main")
