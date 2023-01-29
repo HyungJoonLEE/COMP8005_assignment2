@@ -7,6 +7,7 @@
 #include <string.h>
 #include <crypt.h>
 #include <time.h>
+#include <omp.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include "linkedList.h"
@@ -41,11 +42,12 @@ void find_user(char* file_list, LinkedList* user_list);
 void save_user(char* user_info, LinkedList* user_list, int i);
 void save_userinfo(char* user_info, LinkedList* user_list, int i);
 void compare_password_with_salt(LinkedList *user_list);
-void recursive_init(LinkedList *user_list, int user_index);
 void free_heap_memory(LinkedList *user_list);
-void* brute_force_crack(LinkedList *user_list, int user_index, char* str, int index, int ptr, int* flag);
-void* thread_brute_force(void* arg);
 
+void brute_force_crack(LinkedList *user_list, int user_index, char* str, int index, int ptr, int* flag);
+void recursive_init(LinkedList *user_list, int passwd_len, int user_index);
+
+void* thread_brute_force(void* arg);
 void create_thread(LinkedList *user_list);
 void *thread_func(void *data);
 void* thread_test();

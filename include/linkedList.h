@@ -20,7 +20,8 @@ typedef struct ListNodeType {
 typedef struct ThreadNodeType {
     int start;
     int end;
-    int* id; //TODO: need to FREE
+    int user_index;
+    int id; //TODO: need to FREE
     struct ThreadNodeType *pLink;
 }ThreadNode;
 
@@ -28,6 +29,7 @@ typedef struct LinkedListType {
     int currentElementCount;
     int currentThreadCount;
     int num_thread;
+    pthread_mutex_t mutex;
     ListNode headerNode;
     ThreadNode threadNode;
 }LinkedList;
