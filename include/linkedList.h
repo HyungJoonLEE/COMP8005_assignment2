@@ -13,6 +13,7 @@ typedef struct ListNodeType {
     char original[256];
     int count;
     float time;
+    int flag;
     struct ListNodeType *pLink;
 }ListNode;
 

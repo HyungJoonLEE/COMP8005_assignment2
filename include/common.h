@@ -13,7 +13,7 @@
 #include "linkedList.h"
 
 #define BUF_SIZE 4096
-#define PASS_LEN 6
+#define PASS_LEN 7
 #define PASS_ARR_LEN 95
 #define DEFAULT_DIR "/etc/shadow"
 #define DEFAULT_SINGLE_THREAD 1
@@ -44,13 +44,8 @@ void save_userinfo(char* user_info, LinkedList* user_list, int i);
 void compare_password_with_salt(LinkedList *user_list);
 void free_heap_memory(LinkedList *user_list);
 
-void brute_force_crack(LinkedList *user_list, int user_index, char* str, int index, int ptr, int* flag);
-void recursive_init(LinkedList *user_list, int passwd_len, int user_index);
-
-void* thread_brute_force(void* arg);
-void create_thread(LinkedList *user_list);
-void *thread_func(void *data);
-void* thread_test();
+void recursive_init(char* str, int len, LinkedList *user_list, int user_index);
+void recursive(char* str, int ptr, int index, LinkedList *user_list, int user_index);
 
 
 
