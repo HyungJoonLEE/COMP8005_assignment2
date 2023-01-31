@@ -3,7 +3,7 @@
 #include "error.h"
 
 pthread_mutex_t mutex;
-omp_lock_t semaphore;
+omp_lock_t lock;
 int occupied = 100;
 
 void option_init(char* file_directory, int* number_of_thread) {
@@ -150,7 +150,6 @@ void compare_password_with_salt(LinkedList *user_list) {
     char salt_setting[200] = {0};
     clock_t start, end;
     float time;
-    int thread_id;
     for (int i = 0; i < user_list->currentElementCount; i++) {
         if (strcmp(getLLElement(user_list, i)->hash_id, "y") == 0)
             sprintf(salt_setting, "$%s$%s$%s",
@@ -164,51 +163,61 @@ void compare_password_with_salt(LinkedList *user_list) {
 
         strcpy(getLLElement(user_list, i)->salt_setting, salt_setting);
 
-        pthread_mutex_init(&mutex, NULL);
         start = clock();
-        recursive_init(user_list, PASS_LEN, i);
+        char *str = malloc(sizeof(char) * PASS_LEN);
+        memset(str, 0, PASS_LEN + 1);
+        recursive_init(str, PASS_LEN, user_list, i);
         end = clock();
+        if (str == NULL) continue;
+        else free(str);
 
         time = (float) (end - start) / CLOCKS_PER_SEC;
         getLLElement(user_list, i)->time = time;
     }
 }
 
-void recursive_init(LinkedList *user_list, int passwd_len, int user_index) {
+void recursive_init(char* str, int len, LinkedList *user_list, int user_index) {
+    int i, tid;
 
-    char* buf = malloc(passwd_len + 1);
-    int flag = 0;
-    #pragma omp parallel
-    for (int i = 1; i <= passwd_len; i++) {
-        memset(buf, 0, passwd_len + 1);
-        brute_force_crack(user_list, user_index, buf, 0, i,  &flag);
-        if (flag == 1) break;
+    omp_set_num_threads(user_list->num_thread);
+    #pragma omp parallel firstprivate(str)
+    for (i = 1; i <= len; i++) {
+//        sleep(0);
+        recursive(str, i, 0, user_list, user_index);
     }
-
-    free(buf);
+    return;
 }
 
 
-void brute_force_crack(LinkedList *user_list, int user_index, char* str, int index, int ptr, int* flag) {
-    if (*flag == 1) return;
-    #pragma omp critical
-    for (int i = 0; i < PASS_ARR_LEN; ++i) {
+void recursive(char* str, int ptr, int index, LinkedList *user_list, int user_index) {
+
+    int i;
+    if (getLLElement(user_list, user_index)->flag == TRUE) {
+        return;
+    }
+    #pragma openmp for private(omp_get_thread_num()) firstprivate(str)
+    for (i = 0; i < PASS_ARR_LEN; ++i) {
+        omp_set_lock(&lock);
         str[index] = passwd_arr[i];
+        omp_unset_lock(&lock);
         if (index == ptr - 1) {
-//            pthread_mutex_lock(&mutex);
+            omp_set_lock(&lock);
             if (strcmp(crypt(str, getLLElement(user_list, user_index)->salt_setting),
                        getLLElement(user_list, user_index)->original) == 0) {
                 strcpy(getLLElement(user_list, user_index)->password, str);
                 printf("[thread %d]: %s (HIT)\n", omp_get_thread_num(), str);
-                *flag = 1;
+                getLLElement(user_list, user_index)->flag = TRUE;
             }
-//            pthread_mutex_unlock(&mutex);
             printf("[thread %d]: %s (MISS)\n", omp_get_thread_num(), str);
-            pthread_mutex_lock(&mutex);
-            getLLElement(user_list, user_index)->count++;
-//            pthread_mutex_unlock(&mutex);
+            omp_unset_lock(&lock);
+            if (getLLElement(user_list, user_index)->flag == TRUE) {
+                getLLElement(user_list, user_index)->count--;
+                return;
+            }
+            else
+                getLLElement(user_list, user_index)->count++;
         } else {
-            brute_force_crack(user_list, index + 1, str, ptr, user_index, flag);
+            recursive(str, ptr, index + 1, user_list, user_index);
         }
     }
 }
@@ -220,4 +229,6 @@ void free_heap_memory(LinkedList *user_list) {
         removeLLElement(user_list, i);
     }
 }
+
+
 
