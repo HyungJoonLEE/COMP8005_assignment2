@@ -151,8 +151,6 @@ void save_userinfo(char* user_info, LinkedList* user_list, int i) {
 
 void compare_password_with_salt(LinkedList *user_list) {
     char salt_setting[200] = {0};
-    clock_t start, end;
-    float time;
     for (int i = 0; i < user_list->currentElementCount; i++) {
         if (strcmp(getLLElement(user_list, i)->hash_id, "y") == 0)
             sprintf(salt_setting, "$%s$%s$%s",
@@ -165,66 +163,55 @@ void compare_password_with_salt(LinkedList *user_list) {
                     getLLElement(user_list, i)->salt);
 
         strcpy(getLLElement(user_list, i)->salt_setting, salt_setting);
-
-        omp_init_lock(&lock);
-        start = clock();
-        char *str = malloc(sizeof(char) * PASS_LEN);
-        memset(str, 0, PASS_LEN + 1);
-        recursive_init(str, user_list, i);
-        end = clock();
-        if (str != NULL) free(str);
-        time = (float) (end - start) / CLOCKS_PER_SEC;
-        getLLElement(user_list, i)->time = time;
-        omp_destroy_lock(&lock);
     }
 }
 
-void recursive_init(char* str, LinkedList *user_list, int user_index) {
-    int i;
-    omp_set_num_threads(user_list->num_thread);
-    #pragma omp parallel for private(i) schedule(dynamic)
-    for (i = 1; i <= PASS_LEN; i++) {
-//        #pragma omp parallel firstprivate(str) shared(i)
-        recursive(str, i, 0, user_list, user_index);
-    }
-    return;
-}
 
+void recursive(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len, int temp_pwlen, LinkedList* user_list, int user_index) {
+    char password[temp_pwlen];
+    int  temp[temp_pwlen + 1];
+    int  i, j;
 
-void recursive(char* str, int ptr, int index, LinkedList *user_list, int user_index) {
+    memset( temp, 0, temp_pwlen );
+    memset( password, 0, temp_pwlen );
 
-    int j;
-    for (j = 0; j < PASS_ARR_LEN; j++) {
+    for (i = 0; i < temp_pwlen; i++)
+        temp[i] = ptr1[i];
+
+    i = 0;
+    while (i < temp_pwlen) {
+        for(i = 0; i < temp_pwlen; i++) {
+            password[i] = pass_arr[temp[i]];
+        }
+        password[temp_pwlen] = '\0';
+        printf("[thread %d]: %s\n", omp_get_thread_num(), password);
+
+        #pragma omp critical
+        if (strcmp(crypt(password, getLLElement(user_list, user_index)->salt_setting),
+                   getLLElement(user_list, user_index)->original) == 0) {
+            strcpy(getLLElement(user_list, user_index)->password, password);
+            getLLElement(user_list, user_index)->flag = TRUE;
+        }
+
         if (getLLElement(user_list, user_index)->flag == TRUE) {
+            getLLElement(user_list, user_index)->count--;
+        }
+        else
+            getLLElement(user_list, user_index)->count++;
+
+
+
+        for(i = 0; i < temp_pwlen && temp[temp_pwlen - i - 1]++ == pass_arr_len; i++)
+            temp[temp_pwlen - i - 1] = 0;
+
+        for(j = 0; j < temp_pwlen; j++)
+            if(temp[j] != ptr2[j])
+                break;
+        if (j == temp_pwlen)
             return;
-        }
-        omp_set_lock(&lock);
-//            #pragma omp critical
-            str[index] = passwd_arr[j];
-            printf("[thread %d]: %s\n", omp_get_thread_num(), str);
-        omp_unset_lock(&lock);
-        if (index == ptr - 1) {
-            omp_set_lock(&lock);
-            if (strcmp(crypt(str, getLLElement(user_list, user_index)->salt_setting),
-                       getLLElement(user_list, user_index)->original) == 0) {
-                strcpy(getLLElement(user_list, user_index)->password, str);
-//                printf("[thread %d]: %s (HIT)\n", omp_get_thread_num(), str);
-                getLLElement(user_list, user_index)->flag = TRUE;
-            }
-//            printf("[thread %d]: %s (MISS)\n", omp_get_thread_num(), str);
-            omp_unset_lock(&lock);
-
-            if (getLLElement(user_list, user_index)->flag == TRUE) {
-                getLLElement(user_list, user_index)->count--;
-            }
-            else
-                getLLElement(user_list, user_index)->count++;
-
-        } else {
-            recursive(str, ptr, index + 1, user_list, user_index);
-        }
     }
 }
+
 
 
 
@@ -233,6 +220,5 @@ void free_heap_memory(LinkedList *user_list) {
         removeLLElement(user_list, i);
     }
 }
-
 
 
