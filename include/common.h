@@ -13,8 +13,8 @@
 #include "linkedList.h"
 
 #define BUF_SIZE 4096
-#define PASS_LEN 7
-#define PASS_ARR_LEN 95
+#define PASS_LEN 3
+#define PASS_ARR_LEN 78
 #define DEFAULT_DIR "/etc/shadow"
 #define DEFAULT_SINGLE_THREAD 1
 
@@ -30,8 +30,7 @@
 static const char* passwd_arr =
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "1234567890~!@#+$%^&*()_`-.,"
-        "{|}:;<=>?[\\]^ \"\'";
+        "0123456789~!@#$%^&*()_+`-=";
 
 
 
@@ -44,7 +43,7 @@ void save_userinfo(char* user_info, LinkedList* user_list, int i);
 void compare_password_with_salt(LinkedList *user_list);
 void free_heap_memory(LinkedList *user_list);
 
-void recursive_init(char* str, int len, LinkedList *user_list, int user_index);
+void recursive_init(char* str, LinkedList *user_list, int user_index);
 void recursive(char* str, int ptr, int index, LinkedList *user_list, int user_index);
 
 
