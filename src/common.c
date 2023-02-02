@@ -172,6 +172,7 @@ void recursive(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len, int tem
     int  temp[temp_pwlen + 1];
     int  i, j;
 
+
     memset( temp, 0, temp_pwlen );
     memset( password, 0, temp_pwlen );
 
@@ -183,7 +184,7 @@ void recursive(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len, int tem
         for(i = 0; i < temp_pwlen; i++) {
             password[i] = pass_arr[temp[i]];
         }
-        password[temp_pwlen] = '\0';
+        password[temp_pwlen] = 0;
         printf("[thread %d]: %s\n", omp_get_thread_num(), password);
 
         #pragma omp critical
@@ -191,14 +192,12 @@ void recursive(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len, int tem
                    getLLElement(user_list, user_index)->original) == 0) {
             strcpy(getLLElement(user_list, user_index)->password, password);
             getLLElement(user_list, user_index)->flag = TRUE;
+
         }
 
-        if (getLLElement(user_list, user_index)->flag == TRUE) {
-            getLLElement(user_list, user_index)->count--;
-        }
-        else
+        if (getLLElement(user_list, user_index)->flag != TRUE) {
             getLLElement(user_list, user_index)->count++;
-
+        }
 
 
         for(i = 0; i < temp_pwlen && temp[temp_pwlen - i - 1]++ == pass_arr_len; i++)
@@ -211,8 +210,6 @@ void recursive(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len, int tem
             return;
     }
 }
-
-
 
 
 void free_heap_memory(LinkedList *user_list) {
