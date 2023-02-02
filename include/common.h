@@ -13,8 +13,8 @@
 #include "linkedList.h"
 
 #define BUF_SIZE 4096
-#define PASS_LEN 4
-#define PASS_ARR_LEN 78
+#define PASS_LEN 15
+#define PASS_ARR_LEN 95
 #define DEFAULT_DIR "/etc/shadow"
 #define DEFAULT_SINGLE_THREAD 1
 
@@ -30,7 +30,8 @@
 static const char* passwd_arr =
         "abcdefghijklmnopqrstuvwxyz"
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "0123456789~!@#$%^&*()_+`-=";
+        "0123456789~!@#+$%^&*_`-=.,"
+        "(){|}:;<>?[\\]^ \"\'";
 
 
 
