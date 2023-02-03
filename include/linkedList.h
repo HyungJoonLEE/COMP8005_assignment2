@@ -12,27 +12,19 @@ typedef struct ListNodeType {
     char password[10];
     char original[256];
     int count;
+    int total;
+    time_t end;
     float time;
     int flag;
     struct ListNodeType *pLink;
 }ListNode;
 
 
-typedef struct ThreadNodeType {
-    int start;
-    int end;
-    int user_index;
-    int id; //TODO: need to FREE
-    struct ThreadNodeType *pLink;
-}ThreadNode;
-
 typedef struct LinkedListType {
     int currentElementCount;
     int currentThreadCount;
     int num_thread;
-    pthread_mutex_t mutex;
     ListNode headerNode;
-    ThreadNode threadNode;
 }LinkedList;
 
 
@@ -40,7 +32,6 @@ typedef struct LinkedListType {
 
 LinkedList* createLinkedList(void);
 int addLLElement(LinkedList *pList, int position, ListNode element);
-int addTLElement(LinkedList *pList, int position, ThreadNode element);
 int removeLLElement (LinkedList *pList, int position);
 ListNode* getLLElement(LinkedList *pList, int position);
 
@@ -49,8 +40,6 @@ int getLinkedListLength(LinkedList *pList);
 void deleteLinkedList(LinkedList *pList);
 void displayLinkedList(LinkedList* pList);
 
-int addTLElement(LinkedList* pList, int position, ThreadNode element);
-ThreadNode* getTLElement(LinkedList* pList, int position);
 
 #define FALSE 0
 #define TRUE 1
