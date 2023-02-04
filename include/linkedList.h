@@ -12,17 +12,14 @@ typedef struct ListNodeType {
     char password[10];
     char original[256];
     int count;
-    int total;
     time_t end;
     float time;
-    int flag;
     struct ListNodeType *pLink;
 }ListNode;
 
 
 typedef struct LinkedListType {
     int currentElementCount;
-    int currentThreadCount;
     int num_thread;
     ListNode headerNode;
 }LinkedList;

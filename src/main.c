@@ -1,6 +1,5 @@
 #include <common.h>
 #include <unistd.h>
-#include <stdbool.h>
 
 
 int main(int argc, char* argv[]) {
@@ -29,9 +28,9 @@ int main(int argc, char* argv[]) {
                 for (int j = 0; j < i; j++)
                     ptr1[j] = ptr2[j] = 0;
 
-            #pragma omp for schedule(dynamic)
+                #pragma omp for schedule(dynamic)
                 for (int k = 0; k < PASS_ARR_LEN; k++) {
-                    if (getLLElement(user_list, u)->flag == TRUE) {
+                    if (strlen(getLLElement(user_list, u)->password) > 0) {
                         #pragma omp cancel for
                         continue;
                     }
@@ -40,6 +39,7 @@ int main(int argc, char* argv[]) {
                         ptr2[0] = k + 1;
                         password_generator(ptr1, ptr2, i, user_list, u);
                     }
+                #pragma omp cancellation point for
                 }
             }
         }
