@@ -8,12 +8,10 @@ int main(int argc, char* argv[]) {
     char file_list[BUF_SIZE] = {0};
     int number_of_thread = 0;
     LinkedList *user_list = NULL;
-    int pass_arr_len = (int)strlen(passwd_arr);
-    int password_length = PASS_LEN;
     clock_t start;
     float time;
 
-
+    putenv("OMP_CANCELLATION=true");
     user_list = createLinkedList();
     option_init(file_directory, &number_of_thread);
     parse_command(argc, argv, file_directory, &number_of_thread, user_list);
@@ -24,10 +22,10 @@ int main(int argc, char* argv[]) {
     for (int u = 0; u < user_list->currentElementCount; u++) {
         start = clock();
 
-#pragma omp parallel shared(password_length, pass_arr_len) num_threads(user_list->num_thread)
+#pragma omp parallel num_threads(user_list->num_thread)
         {
             for (int i = 0; i < PASS_LEN + 1; ++i) {
-                char ptr1[i], ptr2[i];
+                int ptr1[i], ptr2[i];
                 for (int j = 0; j < i; j++)
                     ptr1[j] = ptr2[j] = 0;
 
@@ -40,7 +38,7 @@ int main(int argc, char* argv[]) {
                     else {
                         ptr1[0] = k;
                         ptr2[0] = k + 1;
-                        password_generator(ptr1, ptr2, passwd_arr, PASS_ARR_LEN, i, user_list, u);
+                        password_generator(ptr1, ptr2, i, user_list, u);
                     }
                 }
             }

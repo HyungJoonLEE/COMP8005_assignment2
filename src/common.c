@@ -167,7 +167,7 @@ void compare_password_with_salt(LinkedList *user_list) {
 }
 
 
-void password_generator(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len, int temp_pwlen, LinkedList* user_list, int user_index) {
+void password_generator(int* ptr1, int* ptr2, int temp_pwlen, LinkedList* user_list, int user_index) {
     char password[temp_pwlen];
     int temp[temp_pwlen + 1];
     int i, j;
@@ -181,7 +181,7 @@ void password_generator(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len
     i = 0;
     while (i < temp_pwlen) {
         for (i = 0; i < temp_pwlen; i++) {
-            password[i] = pass_arr[temp[i]];
+            password[i] = passwd_arr[temp[i]];
         }
         password[temp_pwlen] = 0;
         printf("[thread %d]: %s\n", omp_get_thread_num());
@@ -199,7 +199,7 @@ void password_generator(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len
             getLLElement(user_list, user_index)->count++;
 
 
-        for (i = 0; i < temp_pwlen && temp[temp_pwlen - i - 1]++ == pass_arr_len; i++)
+        for (i = 0; i < temp_pwlen && temp[temp_pwlen - i - 1]++ == PASS_ARR_LEN; i++)
             temp[temp_pwlen - i - 1] = 0;
 
         for (j = 0; j < temp_pwlen; j++)

@@ -37,7 +37,7 @@ void save_user(char* user_info, LinkedList* user_list, int i);
 void save_userinfo(char* user_info, LinkedList* user_list, int i);
 void compare_password_with_salt(LinkedList *user_list);
 void free_heap_memory(LinkedList *user_list);
-void password_generator(char* ptr1, char* ptr2, char* pass_arr, int pass_arr_len, int temp_pwlen, LinkedList* user_list, int user_index);
+void password_generator(int* ptr1, int* ptr2, int temp_pwlen, LinkedList* user_list, int user_index);
 
 
 
