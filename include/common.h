@@ -29,8 +29,8 @@ static const char* passwd_arr =
 
 
 
-void option_init(char* file_directory, int* number_of_thread);
-void parse_command(int argc, char *argv[], char* file_directory, int* number_of_thread, LinkedList* user_list);
+void option_init(char* file_directory, LinkedList* user_list);
+void parse_command(int argc, char *argv[], char* file_directory, LinkedList* user_list);
 int read_from_shadow(char* file_directory, char* file_list);
 void find_user(char* file_list, LinkedList* user_list);
 void save_user(char* user_info, LinkedList* user_list, int i);

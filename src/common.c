@@ -3,12 +3,12 @@
 #include "error.h"
 
 
-void option_init(char* file_directory, int* number_of_thread) {
+void option_init(char* file_directory, LinkedList* user_list) {
     strcpy(file_directory, DEFAULT_DIR);
-    *number_of_thread = DEFAULT_SINGLE_THREAD;
+    user_list->num_thread = DEFAULT_SINGLE_THREAD;
 }
 
-void parse_command(int argc, char *argv[], char* file_directory, int* number_of_thread, LinkedList* user_list) {
+void parse_command(int argc, char *argv[], char* file_directory, LinkedList* user_list) {
     int c;
 
     while((c = getopt(argc, argv, ":f:t:")) != -1) {
@@ -18,12 +18,11 @@ void parse_command(int argc, char *argv[], char* file_directory, int* number_of_
                 break;
             }
             case 't': {
-                *number_of_thread = atoi(optarg);
                 if (atoi(optarg) > omp_get_max_threads()) {
                     printf("Thread number is higher than your computer's max thread");
                     exit(1);
                 }
-                user_list->num_thread = *number_of_thread;
+                user_list->num_thread = atoi(optarg);
                 break;
             }
             case ':': {
@@ -69,7 +68,6 @@ int read_from_shadow(char* file_directory, char* file_list) {
         strcat(file_list, buffer);
     }
     pclose(fp);
-
     return 0;
 }
 
@@ -182,7 +180,6 @@ void password_generator(int* ptr1, int* ptr2, int temp_pwlen, LinkedList* user_l
         }
         password[temp_pwlen] = 0;
         printf("[thread %d]: %s\n", omp_get_thread_num());
-        sleep(0);
         #pragma omp critical
         if (strcmp(crypt(password, getLLElement(user_list, user_index)->salt_setting),
                    getLLElement(user_list, user_index)->original) == 0) {
