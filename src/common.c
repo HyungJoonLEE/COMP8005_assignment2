@@ -2,8 +2,6 @@
 #include "common.h"
 #include "error.h"
 
-omp_lock_t lock;
-int k;
 
 void option_init(char* file_directory, int* number_of_thread) {
     strcpy(file_directory, DEFAULT_DIR);
@@ -72,7 +70,6 @@ int read_from_shadow(char* file_directory, char* file_list) {
     }
     pclose(fp);
 
-    // printf("%s", file_list);
     return 0;
 }
 
