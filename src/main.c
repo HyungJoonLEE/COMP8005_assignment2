@@ -6,8 +6,8 @@ int main(int argc, char* argv[]) {
     char file_directory[30] = {0};
     char file_list[BUF_SIZE] = {0};
     LinkedList *user_list = NULL;
-    clock_t start;
-    float time;
+    struct timespec start, finish;
+    double time;
 
     putenv("OMP_CANCELLATION=true");
     user_list = createLinkedList();
@@ -18,7 +18,8 @@ int main(int argc, char* argv[]) {
     compare_password_with_salt(user_list);
 
     for (int u = 0; u < user_list->currentElementCount; u++) {
-        start = clock();
+        clock_gettime(CLOCK_MONOTONIC, &start);
+
 
 #pragma omp parallel num_threads(user_list->num_thread)
         {
@@ -42,8 +43,11 @@ int main(int argc, char* argv[]) {
                 }
             }
         }
+        clock_gettime(CLOCK_MONOTONIC, &finish);
 
-        time = (float) (getLLElement(user_list, u)->end - start) / CLOCKS_PER_SEC;
+        time = (finish.tv_sec - start.tv_sec);
+        time += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+
         getLLElement(user_list, u)->time = time;
     }
 

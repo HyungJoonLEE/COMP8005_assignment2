@@ -188,7 +188,6 @@ void password_generator(int* ptr1, int* ptr2, int temp_pwlen, LinkedList* user_l
 
 
         if (strlen(getLLElement(user_list, user_index)->password) > 0) {
-            getLLElement(user_list, user_index)->end = clock();
             return;
         }
 
