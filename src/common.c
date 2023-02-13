@@ -179,7 +179,7 @@ void password_generator(int* ptr1, int* ptr2, int temp_pwlen, LinkedList* user_l
             password[i] = passwd_arr[temp[i]];
         }
         password[temp_pwlen] = 0;
-        printf("[thread %d]: %s\n", omp_get_thread_num());
+        printf("[thread %d]: %s\n", omp_get_thread_num(), password);
         #pragma omp critical
         if (strcmp(crypt(password, getLLElement(user_list, user_index)->salt_setting),
                    getLLElement(user_list, user_index)->original) == 0) {
